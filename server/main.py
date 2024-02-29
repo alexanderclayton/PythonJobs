@@ -32,8 +32,6 @@ def create_job():
     resume = None
     if resume_data:
         if isinstance(resume_data, dict):
-            print("Resume data:", resume_data)
-
             resume = Resume(
                 technical_skills=resume_data.get("technicalSkills"),
                 experience=resume_data.get("experience"),
@@ -85,12 +83,25 @@ def update_job(job_id):
     job.source = data.get("source", job.source)
     job.applied = data.get("applied", job.applied)
     job.application_date = data.get("applicationDate", job.application_date)
-    job.resume = data.get("resume", job.resume)
-    job.cover_letter = data.get("coverLetter", job.cover_letter)
+
+    resume_data = data.get("resume")
+    if resume_data:
+        if not isinstance(job.resume, Resume):
+            return jsonify({"message": "Invalid format for resume data"}), 400
+        for key, value in resume_data.items():
+            setattr(job.resume, key, value)
+
+    cover_letter_data = data.get("coverLetter")
+    if cover_letter_data:
+        if not isinstance(job.cover_letter, CoverLetter):
+            return jsonify({"message": "Invalid format for cover letter data"}), 400
+        for key, value in cover_letter_data.items():
+            setattr(job.cover_letter, key, value)
 
     db.session.commit()
 
     return jsonify({"message": "Job updated."}), 200
+
 
 @app.route("/delete_job/<int:job_id>", methods=["DELETE"])
 def delete_job(job_id):
@@ -98,6 +109,14 @@ def delete_job(job_id):
 
     if not job:
         return jsonify({"message": "Job not found."}), 404
+    
+    resumes = Resume.query.filter_by(id_job=job_id).all()
+    for resume in resumes:
+        db.session.delete(resume)
+    
+    cover_letters = CoverLetter.query.filter_by(id_job=job_id).all()
+    for cover_letter in cover_letters:
+        db.session.delete(cover_letter)
     
     db.session.delete(job)
     db.session.commit()
