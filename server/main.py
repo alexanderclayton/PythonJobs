@@ -5,7 +5,12 @@ from models import Job, Resume, CoverLetter
 @app.route("/jobs", methods=["GET"])
 def get_jobs():
     jobs = Job.query.all()
-    json_jobs = list(map(lambda x: x.to_json(), jobs))
+    json_jobs = []
+    for job in jobs:
+        job_data = job.to_json()
+        job_data["resume"] = job.resume.to_json()
+        job_data["coverLetter"] = job.cover_letter.to_json()
+        json_jobs.append(job_data)
     return jsonify({"jobs": json_jobs})
 
 @app.route("/create_job", methods=["POST"])
@@ -27,6 +32,8 @@ def create_job():
     resume = None
     if resume_data:
         if isinstance(resume_data, dict):
+            print("Resume data:", resume_data)
+
             resume = Resume(
                 technical_skills=resume_data.get("technicalSkills"),
                 experience=resume_data.get("experience"),

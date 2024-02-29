@@ -8,8 +8,8 @@ class Job(db.Model):
     source = db.Column(db.String(80), unique=False, nullable=False)
     applied = db.Column(db.Boolean, unique=False, default=False)
     application_date = db.Column(db.String(80), unique=False, nullable=True)
-    resume = db.relationship("Resume", lazy="joined", back_populates="job")
-    cover_letter = db.relationship("CoverLetter", lazy="joined", back_populates="job")
+    resume = db.relationship("Resume", lazy="joined", back_populates="job", uselist=False)
+    cover_letter = db.relationship("CoverLetter", lazy="joined", back_populates="job", uselist=False)
 
     def to_json(self):
         return {
